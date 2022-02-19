@@ -17,6 +17,7 @@ def get_command(l):
     return str(l)
 
 
+
 def scrap(retailer, url):
     with open(os.path.join(retailer_path, retailer, 'scrape.json'), 'r') as f:
         son = json.load(f)
@@ -33,7 +34,7 @@ def scrap(retailer, url):
         except requests.exceptions.ConnectionError as e:
             print(e)
             sleep(0.25)
-            scrap(url, retailer)
+            scrap(retailer, url)
         try:
             for i in son:
                 if isinstance(i, int):
