@@ -1,0 +1,24 @@
+[
+  [
+    "find",
+    [
+      "table",
+      {
+        "id": "product-attribute-specs-table"
+      }
+    ]
+  ],
+  [
+    "findChildren",
+    [
+      "tr"
+    ]
+  ],
+  2,
+  [
+    "find",
+    [
+      "td"
+    ]
+  ]
+]
