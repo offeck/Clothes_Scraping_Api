@@ -3,7 +3,6 @@ from fabric_func import os
 from flask import Flask, jsonify, request
 from flask_restful import Resource, Api, reqparse
 import fabric_func
-import multi_fabric_func
 
 
 app = Flask(__name__)
@@ -87,7 +86,7 @@ def retailersget(retailer=''):
             return jsonify(
                 {'retailer': retailer, 'json_instructions': json.load(open(os.path.join(rpath, 'scrape.json')))})
         if isinstance(parameters['url'],list):
-            return jsonify(multi_fabric_func.multi_scrap(retailer, parameters['url']))
+            return jsonify(fabric_func.multi_scrap(retailer, parameters['url']))
         if isinstance(parameters['url'],str):
             return fabric_func.scrap(retailer, parameters['url'])
         return 'Bad Request format', 400
