@@ -4,15 +4,16 @@ from flask import Flask, jsonify, request
 from flask_restful import Resource, Api, reqparse
 import fabric_func
 
-
 app = Flask(__name__)
 api = Api(app)
 
-if 'retailers' not in [f for f in os.listdir(os.path.dirname(os.path.abspath(__file__))) if os.path.isdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), f))]:
-    os.mkdir(os.path.join(os.path.dirname(os.path.abspath(__file__)),'retailers'))
-retailer_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),'retailers')
+if 'retailers' not in [f for f in os.listdir(os.path.dirname(os.path.abspath(__file__))) if
+                       os.path.isdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), f))]:
+    os.mkdir(os.path.join(os.path.dirname(
+        os.path.abspath(__file__)), 'retailers'))
+retailer_path = os.path.join(os.path.dirname(
+    os.path.abspath(__file__)), 'retailers')
 print(retailer_path)
-
 
 
 def fun():
@@ -28,7 +29,7 @@ def fun():
                     'GET': {
                         'description': 'Get all retailers and their json instructions',
                     },
-                    '/retailers/<name>': {
+                    'retailers/<name>': {
                         'GET without parameters': {
                             'description': 'Get retailer and Json instructions',
                         },
@@ -54,8 +55,38 @@ def fun():
                         json.load(
                             open(os.path.join(retailer_path, i, 'scrape.json'))) for
                         i in
-                        os.listdir(retailer_path)}
+                        os.listdir(retailer_path)},
              },
+        'ai': {
+            'methods': {
+                'GET': {'description': 'Get all AI functions and their instructions', },
+                'ai/tag_item':
+                    {
+                        'GET with parameters':
+                            {
+                                'description': 'Get item tags',
+                                'parameters': {'retailer': 'string', 'sku': 'string', },
+                            },
+                        'GET':
+                            {
+                                'description': 'Get available methods',
+                            },
+                },
+                'ai/mount_classification_containers':
+                    {
+                        'GET with parameters':
+                            {
+                                'description': 'Mount models',
+                                'parameters': {'gender': 'string', 'category': 'string', },
+                            },
+                        'GET':
+                            {
+                                'description': 'Get available methods',
+                            },
+                },
+            },
+            'functions': {'tag_item': {'retailer': 'string', 'sku': 'string', }, 'mount_classification_containers': {'gender': 'string', 'category': 'string', }}
+        },
     }
     return jsonify(info)
 
@@ -85,9 +116,9 @@ def retailersget(retailer=''):
         if parameters == None:
             return jsonify(
                 {'retailer': retailer, 'json_instructions': json.load(open(os.path.join(rpath, 'scrape.json')))})
-        if isinstance(parameters['url'],list):
+        if isinstance(parameters['url'], list):
             return jsonify(fabric_func.multi_scrap(retailer, parameters['url']))
-        if isinstance(parameters['url'],str):
+        if isinstance(parameters['url'], str):
             return fabric_func.scrap(retailer, parameters['url'])
         return 'Bad Request format', 400
     return 'Retailer does not exist', 400
@@ -118,6 +149,34 @@ def retailersdelete(retailer=''):
         os.rmdir(rpath)
         return '', 204
     return 'Retailer does not exist', 400
+
+
+@app.route('/ai/<func>', methods=['GET'])
+def ai_mount(func=''):
+    dic = fun().get_json()['ai']['functions']
+    if func in dic.keys():
+        parameters = request.get_json()
+        if parameters == None:
+            return dic[func], 200
+        if dic[func].keys() == parameters.keys():
+            command, path = 'python3', os.path.join(
+                os.path.dirname(os.path.abspath(__file__)), func)
+            res = os.popen(
+                ' '.join([command, path]+list(parameters.values()))).read()
+            if res == '':
+                return '', 204
+            return jsonify(res), 200
+            # return ' '.join([command, path]+list(parameters.values())), 200
+        return 'Bad Request format', 400
+    return 'Function does not exist', 400
+
+
+# @app.route('/ai/tag_item')
+# def ai_get():
+#     parameters = request.get_json()
+#     command = 'python3' '/home/ec2-user/pythonProject/tag_item.py'
+#     res = os.popen(' '.join(command, path, retailer, sku))
+#     return jsonify(res)
 
 
 # @app.route('/retailers/<retailer>/<url>', methods=['GET'])
