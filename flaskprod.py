@@ -160,7 +160,7 @@ def ai_mount(func=''):
             return dic[func], 200
         if dic[func].keys() == parameters.keys():
             command, path = 'python3', os.path.join(
-                os.path.dirname(os.path.abspath(__file__)), func)
+                os.path.dirname(os.path.abspath(__file__)), func)+'.py'
             res = os.popen(
                 ' '.join([command, path]+list(parameters.values()))).read()
             if res == '':

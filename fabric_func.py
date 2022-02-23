@@ -69,7 +69,7 @@ def get_html(url, js=False):
 def download_url(url, son, js=False):
     try:
         x = BeautifulSoup(get_html(url, js), "html.parser")
-        print(x.prettify(),js)
+        # print(x.prettify(),js)
         for i in son:
             if isinstance(i, int):
                 x = x[i]
@@ -83,7 +83,7 @@ def download_url(url, son, js=False):
         return 'None'
 
 
-def multi_scrap(retailer, urls,threadcount=MAX_THREADS):
+def multi_scrap(retailer, urls, threadcount=MAX_THREADS):
     with open(os.path.join(retailer_path, retailer, 'scrape.json'), 'r') as inst:
         son = json.load(inst)
         threads = min(threadcount, len(urls))
@@ -111,7 +111,6 @@ def multi_scrap(retailer, urls,threadcount=MAX_THREADS):
 #         if inst[0]=='js':
 #             return list(concurrent.futures.ThreadPoolExecutor(max_workers=min(MAX_THREADS, len(url))).map(download_url, url, repeat(inst[1:]), repeat(True))) if isinstance(url,list) else download_url(url,inst[1:],True)
 #         return list(concurrent.futures.ThreadPoolExecutor(max_workers=min(MAX_THREADS, len(url))).map(download_url, url, repeat(inst))) if isinstance(url,list) else download_url(url,inst)
-        
 
 
 if __name__ == '__main__':
