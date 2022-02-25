@@ -3,6 +3,7 @@ from fabric_func import os
 from flask import Flask, jsonify, request
 from flask_restful import Resource, Api, reqparse
 import fabric_func
+import importlib
 
 app = Flask(__name__)
 api = Api(app)
@@ -85,7 +86,7 @@ def fun():
                             },
                 },
             },
-            'functions': {'tag_item': {'retailer': 'string', 'sku': 'string', }, 'mount_classification_containers': {'gender': 'string', 'category': 'string', }}
+            'functions': {'tag_item': {'path_on_bucket': 'string', 'category': 'string', }, 'mount_classification_containers': {'gender': 'string', 'category': 'string', }}
         },
     }
     return jsonify(info)
@@ -99,9 +100,9 @@ def getmain():
 @app.route('/<name>')
 def getsub(name=''):
     print(name)
-    print(fun(), type(fun()))
+    # print(fun(), type(fun()))
     info = fun().get_json()
-    print(info, type(info), info.keys(), name)
+    # print(info, type(info), info.keys(), name)
     if name in list(info.keys()):
         return jsonify(info[name])
     return '', 400
@@ -159,10 +160,12 @@ def ai_mount(func=''):
         if parameters == None:
             return dic[func], 200
         if dic[func].keys() == parameters.keys():
-            command, path = 'python3', os.path.join(
-                os.path.dirname(os.path.abspath(__file__)), func)+'.py'
-            res = os.popen(
-                ' '.join([command, path]+list(parameters.values()))).read()
+            mymodule = importlib.import_module(func)
+            # command, path = 'python3', os.path.join(
+            #     os.path.dirname(os.path.abspath(__file__)), func)+'.py'
+            # res = os.popen(
+            #     ' '.join([command, path]+list(parameters.values()))).read()
+            res = mymodule.main(**{i: parameters[i] for i in dic[func].keys()})
             if res == '':
                 return '', 204
             return jsonify(res), 200
