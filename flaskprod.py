@@ -61,32 +61,29 @@ def fun():
         'ai': {
             'methods': {
                 'GET': {'description': 'Get all AI functions and their instructions', },
-                'ai/tag_item':
+                'ai/<name>':
                     {
                         'GET with parameters':
                             {
-                                'description': 'Get item tags',
-                                'parameters': {'retailer': 'string', 'sku': 'string', },
+                                'description': 'Excute the function and recieve appropriate response',
+                                'parameters': 'In ai --> functions --> <name>',
                             },
                         'GET':
                             {
-                                'description': 'Get available methods',
+                                'description': 'Get function json',
                             },
-                },
-                'ai/mount_classification_containers':
-                    {
-                        'GET with parameters':
+                        'POST': {
+                                'description': 'Add new function',
+                        },
+                        'DELETE':
                             {
-                                'description': 'Mount models',
-                                'parameters': {'gender': 'string', 'category': 'string', },
-                            },
-                        'GET':
-                            {
-                                'description': 'Get available methods',
-                            },
+                                'description': 'Delete function',
+                        },
                 },
             },
-            'functions': {'tag_item': {'path_on_bucket': 'string', 'category': 'string', }, 'mount_classification_containers': {'gender': 'string', 'category': 'string', }}
+            'functions':
+                {'tag_item': {'path_on_bucket': 'string', 'category': 'string', },
+                    'mount_classification_containers': {'gender': 'string', 'category': 'string', }},
         },
     }
     return jsonify(info)
@@ -117,10 +114,10 @@ def retailersget(retailer=''):
         if parameters == None:
             return jsonify(
                 {'retailer': retailer, 'json_instructions': json.load(open(os.path.join(rpath, 'scrape.json')))})
-        if isinstance(parameters['url'], list):
-            return jsonify(fabric_func.multi_scrap(retailer, parameters['url']))
-        if isinstance(parameters['url'], str):
-            return fabric_func.scrap(retailer, parameters['url'])
+        if ['url'] != list(parameters.keys()):
+            return 'Bad Request format', 400
+        if isinstance(parameters['url'], (list, str)) and parameters['url']:
+            return jsonify(fabric_func.scrap_manager(retailer, parameters['url']))
         return 'Bad Request format', 400
     return 'Retailer does not exist', 400
 
@@ -156,63 +153,62 @@ def retailersdelete(retailer=''):
 def ai_mount(func=''):
     dic = fun().get_json()['ai']['functions']
     if func in dic.keys():
-        parameters = request.get_json()
         if parameters == None:
             return dic[func], 200
+        parameters = request.get_json()
         if dic[func].keys() == parameters.keys():
-            mymodule = importlib.import_module(func)
-            # command, path = 'python3', os.path.join(
-            #     os.path.dirname(os.path.abspath(__file__)), func)+'.py'
-            # res = os.popen(
-            #     ' '.join([command, path]+list(parameters.values()))).read()
-            res = mymodule.main(**{i: parameters[i] for i in dic[func].keys()})
-            if res == '':
-                return '', 204
-            return jsonify(res), 200
+            try:
+                mymodule = importlib.import_module(func)
+                # command, path = 'python3', os.path.join(
+                #     os.path.dirname(os.path.abspath(__file__)), func)+'.py'
+                # res = os.popen(
+                #     ' '.join([command, path]+list(parameters.values()))).read()
+                res = mymodule.main(
+                    **{i: parameters[i] for i in dic[func].keys()})
+                if res == '':
+                    return '', 204
+                return jsonify(res), 200
+            except (ModuleNotFoundError, AttributeError) as e:
+                return e, 400
             # return ' '.join([command, path]+list(parameters.values())), 200
         return 'Bad Request format', 400
     return 'Function does not exist', 400
 
+    # @app.route('/ai/tag_item')
+    # def ai_get():
+    #     parameters = request.get_json()
+    #     command = 'python3' '/home/ec2-user/pythonProject/tag_item.py'
+    #     res = os.popen(' '.join(command, path, retailer, sku))
+    #     return jsonify(res)
 
-# @app.route('/ai/tag_item')
-# def ai_get():
-#     parameters = request.get_json()
-#     command = 'python3' '/home/ec2-user/pythonProject/tag_item.py'
-#     res = os.popen(' '.join(command, path, retailer, sku))
-#     return jsonify(res)
+    # @app.route('/retailers/<retailer>/<url>', methods=['GET'])
+    # def retailersurlget(retailer='', url=''):
+    #     parameters = request.get_json()
+    #     rpath = os.path.join(retailer_path, retailer)
+    #     if os.path.isdir(os.path.join(rpath)):
+    #         return fabric_func.scrap(retailer, url)
+    #     return 'Retailer does not exist', 400
 
-
-# @app.route('/retailers/<retailer>/<url>', methods=['GET'])
-# def retailersurlget(retailer='', url=''):
-#     parameters = request.get_json()
-#     rpath = os.path.join(retailer_path, retailer)
-#     if os.path.isdir(os.path.join(rpath)):
-#         return fabric_func.scrap(retailer, url)
-#     return 'Retailer does not exist', 400
-
-
-# @app.route('/fabric', methods=['GET'])
-# def exceute_command():
-#     print(request.get_json())
-#     x = request.get_json()
-#     fabric_parameters = info['/fabric']['GET']['parameters']
-#     if x.keys() == fabric_parameters.keys():
-#         return fabric_func.scrap(x[list(fabric_parameters.keys())[0]], x[list(fabric_parameters.keys())[1]]), 200
-#     return 'bad request', 400
-# case 'addretailer':
-#     params = x[1]
-#     newdir = os.path.join(retailer_path, params[0])
-#     if os.path.isdir(newdir):
-#         return 'Retailer exists, try updating with PUT request', 204
-#     os.mkdir(newdir)
-#     with open(f'{newdir}\\scrape.json', 'w', encoding='utf-8') as f:
-#         json.dump(params[1], f, ensure_ascii=False)
-#     print(params[1])
-#     return '', 204
-# case default:
-#     return '', 204
-
-
+    # @app.route('/fabric', methods=['GET'])
+    # def exceute_command():
+    #     print(request.get_json())
+    #     x = request.get_json()
+    #     fabric_parameters = info['/fabric']['GET']['parameters']
+    #     if x.keys() == fabric_parameters.keys():
+    #         return fabric_func.scrap(x[list(fabric_parameters.keys())[0]], x[list(fabric_parameters.keys())[1]]), 200
+    #     return 'bad request', 400
+    # case 'addretailer':
+    #     params = x[1]
+    #     newdir = os.path.join(retailer_path, params[0])
+    #     if os.path.isdir(newdir):
+    #         return 'Retailer exists, try updating with PUT request', 204
+    #     os.mkdir(newdir)
+    #     with open(f'{newdir}\\scrape.json', 'w', encoding='utf-8') as f:
+    #         json.dump(params[1], f, ensure_ascii=False)
+    #     print(params[1])
+    #     return '', 204
+    # case default:
+    #     return '', 204
 if __name__ == '__main__':
     app.run(host='0.0.0.0')  # run our Flask app
 # curl -X POST -H "Content-Type: application/json" -d '["getfabric","https://www.terminalx.com/catalog/product/view/id/810153/s/x976060017/","terminalx"]' http://localhost:5000/fabric
