@@ -53,14 +53,15 @@ def get_command(l):
 
 
 def get_html(url, js=False):
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36"}
     try:
         if js:
             session = HTMLSession()
-            t = session.get(
-                url).html.raw_html
+            t = session.get(url,headers=headers).html.raw_html
             session.close()
             return t
-        return requests.get(url).content
+        return requests.get(url,headers=headers).content
     except (requests.exceptions.ConnectionError, requests.exceptions.ConnectTimeout, requests.exceptions.Timeout) as e:
         print(e, type(e), 'in gethtml')
         sleep(1)

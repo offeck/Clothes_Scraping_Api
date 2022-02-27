@@ -73,8 +73,8 @@ def fun():
                                 'description': 'Get function json',
                             },
                         'POST': {
-                                'description': 'Add new function',
-                        },
+                            'description': 'Add new function',
+                                },
                         'DELETE':
                             {
                                 'description': 'Delete function',
@@ -83,7 +83,7 @@ def fun():
             },
             'functions':
                 {'tag_item': {'path_on_bucket': 'string', 'category': 'string', },
-                    'mount_classification_containers': {'gender': 'string', 'category': 'string', }},
+                 'mount_classification_containers': {'gender': 'string', 'category': 'string', }},
         },
     }
     return jsonify(info)
@@ -111,7 +111,7 @@ def retailersget(retailer=''):
     parameters = request.get_json()
     rpath = os.path.join(retailer_path, retailer)
     if os.path.isdir(rpath):
-        if parameters == None:
+        if parameters is None:
             return jsonify(
                 {'retailer': retailer, 'json_instructions': json.load(open(os.path.join(rpath, 'scrape.json')))})
         if ['url'] != list(parameters.keys()):
@@ -153,9 +153,9 @@ def retailersdelete(retailer=''):
 def ai_mount(func=''):
     dic = fun().get_json()['ai']['functions']
     if func in dic.keys():
-        if parameters == None:
-            return dic[func], 200
         parameters = request.get_json()
+        if parameters is None:
+            return dic[func], 200
         if dic[func].keys() == parameters.keys():
             try:
                 mymodule = importlib.import_module(func)
@@ -165,11 +165,9 @@ def ai_mount(func=''):
                 #     ' '.join([command, path]+list(parameters.values()))).read()
                 res = mymodule.main(
                     **{i: parameters[i] for i in dic[func].keys()})
-                if res == '':
-                    return '', 204
-                return jsonify(res), 200
+                return jsonify(res), 200 if res else '', 204
             except (ModuleNotFoundError, AttributeError) as e:
-                return e, 400
+                return jsonify(e.msg), 400
             # return ' '.join([command, path]+list(parameters.values())), 200
         return 'Bad Request format', 400
     return 'Function does not exist', 400
@@ -209,6 +207,8 @@ def ai_mount(func=''):
     #     return '', 204
     # case default:
     #     return '', 204
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0')  # run our Flask app
 # curl -X POST -H "Content-Type: application/json" -d '["getfabric","https://www.terminalx.com/catalog/product/view/id/810153/s/x976060017/","terminalx"]' http://localhost:5000/fabric
