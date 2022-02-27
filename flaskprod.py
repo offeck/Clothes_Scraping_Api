@@ -165,7 +165,9 @@ def ai_mount(func=''):
                 #     ' '.join([command, path]+list(parameters.values()))).read()
                 res = mymodule.main(
                     **{i: parameters[i] for i in dic[func].keys()})
-                return jsonify(res), 200 if res else '', 204
+                if res:
+                    return jsonify(res), 200
+                return '', 204
             except (ModuleNotFoundError, AttributeError) as e:
                 return jsonify(e.msg), 400
             # return ' '.join([command, path]+list(parameters.values())), 200
