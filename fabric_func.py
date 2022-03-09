@@ -7,6 +7,8 @@ from time import sleep
 import concurrent.futures
 from itertools import repeat
 import validators
+import lxml
+import cchardet
 
 retailer_path = os.path.join(os.path.dirname(
     os.path.abspath(__file__)), 'retailers')
@@ -52,28 +54,22 @@ def get_command(l):
 #             return 'None'
 
 
-def get_html(url, js=False):
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36"}
+def get_html(url):
     try:
-        if js:
-            session = HTMLSession()
-            t = session.get(url,headers=headers).html.raw_html
-            session.close()
-            return t
-        return requests.get(url,headers=headers).content
+        return requests.get(url, headers={
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36"}).content
     except (requests.exceptions.ConnectionError, requests.exceptions.ConnectTimeout, requests.exceptions.Timeout) as e:
         print(e, type(e), 'in gethtml')
-        sleep(1)
-        return get_html(url, js)
+        sleep(2)
+        return get_html(url)
 
 
-def download_url(url, son, js=False):
+def download_url(url, son):
     if not validators.url(url):
         return 'Bad URL'
     try:
-        x = BeautifulSoup(get_html(url, js), "html.parser")
-        # print(x.prettify(),js)
+        x = BeautifulSoup(get_html(url), 'lxml')
+        # print(x.prettify())
         for i in son:
             if isinstance(i, int):
                 x = x[i]
@@ -84,9 +80,35 @@ def download_url(url, son, js=False):
         sleep(0.25)
         return x.text.strip()
     except (AttributeError, IndexError) as e:
-        print(e, 'in download_url')
+        print(e, 'in download_url', url)
         sleep(0.25)
-        return 'None'
+        return 'Not found'
+
+
+# def download_url_ses(url, son, ses):
+#     if not validators.url(url):
+#         return 'Bad URL'
+#     try:
+#         x = BeautifulSoup(ses.get(url).content, 'lxml')
+#         # print(x.prettify())
+#         for i in son:
+#             if isinstance(i, int):
+#                 x = x[i]
+#             else:
+#                 x = eval(f'x.{i[0]}{get_command(i[1])}')
+#         # if x.text.strip()=="יש לכבס בהתאם להנחיות שעל תווית הכביסה.":
+#         #     raise AttributeError
+#         sleep(0.25)
+#         return x.text.strip()
+#     except (AttributeError, IndexError, requests.exceptions.ConnectionError, requests.exceptions.ConnectTimeout,
+#             requests.exceptions.Timeout) as e:
+#         if isinstance(AttributeError, IndexError):
+#             print(e, 'in download_url', url)
+#             sleep(0.25)
+#             return 'None'
+#         print(e, type(e), 'in gethtml')
+#         sleep(2)
+#         return get_html(url)
 
 
 # def multi_scrap(retailer, url, threadcount=MAX_THREADS):
@@ -114,11 +136,32 @@ def download_url(url, son, js=False):
 def scrap_manager(retailer, url):
     with open(os.path.join(retailer_path, retailer, 'scrape.json'), 'r') as son:
         inst = json.load(son)
-        if inst[0] == 'js':
-            return list(concurrent.futures.ThreadPoolExecutor(max_workers=min(MAX_THREADS, len(url))).map(download_url, url, repeat(inst[1:]), repeat(True))) if isinstance(url, list) else download_url(url, inst[1:], True)
-        return list(concurrent.futures.ThreadPoolExecutor(max_workers=min(MAX_THREADS, len(url))).map(download_url, url, repeat(inst))) if isinstance(url, list) else download_url(url, inst)
+        return list(concurrent.futures.ThreadPoolExecutor(max_workers=min(MAX_THREADS, len(url))).map(download_url, url,
+                                                                                                      repeat(
+                                                                                                          inst))) if isinstance(
+            url, list) else download_url(url, inst)
+
+
+# def scrap_manager_ses(retailer, url):
+#     if not url:
+#         return 'url is empty'
+#     with open(os.path.join(retailer_path, retailer, 'scrape.json'), 'r') as son:
+#         ses = requests.Session()
+#         ses.headers.update({
+#             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36"})
+#         inst = json.load(son)
+#         return list(
+#             concurrent.futures.ThreadPoolExecutor(max_workers=min(MAX_THREADS, len(url))).map(download_url_ses, url,
+#                                                                                               repeat(
+#                                                                                                   inst), repeat(
+#                     ses))) if isinstance(
+#             url, list) else download_url(url, inst)
 
 
 if __name__ == '__main__':
-    print(scrap_manager('bonobos',
-          'https://bonobos.com/products/jetsetter-stretch-wool-suit-pant'))
+    # print(scrap_manager('bonobos',
+    #                     ['https://bonobos.com/products/jetsetter-stretch-wool-suit-pant'] * 50))
+    print(scrap_manager('bonobosnew',
+                        'https://bonobos.com/products/jetsetter-stretch-wool-suit-pant'))
+    # print(scrap_manager_ses('bonobosnew',
+    #                         'https://bonobos.com/products/jetsetter-stretch-wool-suit-pant'))

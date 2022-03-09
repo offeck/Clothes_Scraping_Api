@@ -74,11 +74,11 @@ def fun():
                             },
                         'POST': {
                             'description': 'Add new function',
-                                },
+                            },
                         'DELETE':
                             {
                                 'description': 'Delete function',
-                        },
+                                },
                 },
             },
             'functions':
@@ -108,18 +108,29 @@ def getsub(name=''):
 @app.route('/retailers/<retailer>', methods=['GET'])
 def retailersget(retailer=''):
     print(retailer)
-    parameters = request.get_json()
+    arguments = request.args.to_dict()
+    print('arguments :', arguments)
     rpath = os.path.join(retailer_path, retailer)
     if os.path.isdir(rpath):
-        if parameters is None:
+        if not arguments:
             return jsonify(
-                {'retailer': retailer, 'json_instructions': json.load(open(os.path.join(rpath, 'scrape.json')))})
-        if ['url'] != list(parameters.keys()):
+                {'retailer': retailer, 'json_instructions': json.load(open(os.path.join(rpath, 'scrape.json')))}), 200
+        if ['url'] != list(arguments.keys()):
             return 'Bad Request format', 400
-        if isinstance(parameters['url'], (list, str)) and parameters['url']:
-            return jsonify(fabric_func.scrap_manager(retailer, parameters['url']))
+        if isinstance(arguments['url'], (list, str)) and arguments['url']:
+            return jsonify(fabric_func.scrap_manager(retailer, arguments['url'])), 200
         return 'Bad Request format', 400
     return 'Retailer does not exist', 400
+    # if os.path.isdir(rpath):
+    #     if parameters is None:
+    #         return jsonify(
+    #             {'retailer': retailer, 'json_instructions': json.load(open(os.path.join(rpath, 'scrape.json')))})
+    #     if ['url'] != list(parameters.keys()):
+    #         return 'Bad Request format', 400
+    #     if isinstance(parameters['url'], (list, str)) and parameters['url']:
+    #         return jsonify(fabric_func.scrap_manager(retailer, parameters['url']))
+    #     return 'Bad Request format', 400
+    # return 'Retailer does not exist', 400
 
 
 # for i in list(info.keys()):
@@ -149,31 +160,52 @@ def retailersdelete(retailer=''):
     return 'Retailer does not exist', 400
 
 
-@app.route('/ai/<func>', methods=['GET'])
-def ai_mount(func=''):
-    dic = fun().get_json()['ai']['functions']
-    if func in dic.keys():
-        parameters = request.get_json()
-        if parameters is None:
-            return dic[func], 200
-        if dic[func].keys() == parameters.keys():
-            try:
-                mymodule = importlib.import_module(func)
+# @app.route('/ai/<func>', methods=['GET'])
+# def ai_mount(func=''):
+#     dic = fun().get_json()['ai']['functions']
+#     if func in dic.keys():
+#         parameters = request.get_json()
+#         if parameters is None:
+#             return dic[func], 200
+#         if dic[func].keys() == parameters.keys():
+#             try:
+#                 mymodule = importlib.import_module(func)
+#                 # command, path = 'python3', os.path.join(
+#                 #     os.path.dirname(os.path.abspath(__file__)), func)+'.py'
+#                 # res = os.popen(
+#                 #     ' '.join([command, path]+list(parameters.values()))).read()
+#                 res = mymodule.main(
+#                     **{i: parameters[i] for i in dic[func].keys()})
+#                 if res:
+#                     return jsonify(res), 200
+#                 return '', 204
+#             except (ModuleNotFoundError, AttributeError) as e:
+#                 return jsonify(e.msg), 400
+#             # return ' '.join([command, path]+list(parameters.values())), 200
+#         return 'Bad Request format', 400
+#     return 'Function does not exist', 400
+@app.route('/ai/get_tags', methods=['GET'])
+def get_tags():
+    modulename = 'tag_item' # change module name manually
+    dic = fun().get_json()['ai']['functions'][modulename]
+    arguments = request.args.to_dict()
+    if not arguments:
+        return dic, 200
+    if dic.keys() == arguments.keys():
+        try:
+                mymodule = importlib.import_module(modulename)
                 # command, path = 'python3', os.path.join(
                 #     os.path.dirname(os.path.abspath(__file__)), func)+'.py'
                 # res = os.popen(
                 #     ' '.join([command, path]+list(parameters.values()))).read()
                 res = mymodule.main(
-                    **{i: parameters[i] for i in dic[func].keys()})
+                    **{i: arguments[i] for i in dic.keys()})
                 if res:
                     return jsonify(res), 200
                 return '', 204
-            except (ModuleNotFoundError, AttributeError) as e:
+        except (ModuleNotFoundError, AttributeError) as e:
                 return jsonify(e.msg), 400
-            # return ' '.join([command, path]+list(parameters.values())), 200
-        return 'Bad Request format', 400
     return 'Function does not exist', 400
-
     # @app.route('/ai/tag_item')
     # def ai_get():
     #     parameters = request.get_json()
