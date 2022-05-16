@@ -161,7 +161,9 @@ def scrap_manager(retailer, url):
 if __name__ == '__main__':
     # print(scrap_manager('bonobos',
     #                     ['https://bonobos.com/products/jetsetter-stretch-wool-suit-pant'] * 50))
-    print(scrap_manager('bonobosnew',
+    print(scrap_manager('bonobos',
                         'https://bonobos.com/products/jetsetter-stretch-wool-suit-pant'))
+    print(scrap_manager('terminalx',
+                        'https://www.terminalx.com/women/pants-skirts/jeans/z280796027'))
     # print(scrap_manager_ses('bonobosnew',
     #                         'https://bonobos.com/products/jetsetter-stretch-wool-suit-pant'))

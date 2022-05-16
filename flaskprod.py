@@ -74,11 +74,11 @@ def fun():
                             },
                         'POST': {
                             'description': 'Add new function',
-                            },
+                        },
                         'DELETE':
                             {
                                 'description': 'Delete function',
-                                },
+                            },
                 },
             },
             'functions':
@@ -115,10 +115,12 @@ def retailersget(retailer=''):
         if not arguments:
             return jsonify(
                 {'retailer': retailer, 'json_instructions': json.load(open(os.path.join(rpath, 'scrape.json')))}), 200
-        if ['url'] != list(arguments.keys()):
-            return 'Bad Request format', 400
-        if isinstance(arguments['url'], (list, str)) and arguments['url']:
-            return jsonify(fabric_func.scrap_manager(retailer, arguments['url'])), 200
+        if ['url'] == list(arguments.keys()):
+            try:
+                jsonargs = json.loads(arguments['url'])
+            except json.JSONDecodeError:
+                return 'Bad Json body format.'
+            return jsonify(fabric_func.scrap_manager(retailer, jsonargs)), 200
         return 'Bad Request format', 400
     return 'Retailer does not exist', 400
     # if os.path.isdir(rpath):
@@ -186,25 +188,25 @@ def retailersdelete(retailer=''):
 #     return 'Function does not exist', 400
 @app.route('/ai/get_tags', methods=['GET'])
 def get_tags():
-    modulename = 'tag_item' # change module name manually
+    modulename = 'tag_item'  # change module name manually
     dic = fun().get_json()['ai']['functions'][modulename]
     arguments = request.args.to_dict()
     if not arguments:
         return dic, 200
     if dic.keys() == arguments.keys():
         try:
-                mymodule = importlib.import_module(modulename)
-                # command, path = 'python3', os.path.join(
-                #     os.path.dirname(os.path.abspath(__file__)), func)+'.py'
-                # res = os.popen(
-                #     ' '.join([command, path]+list(parameters.values()))).read()
-                res = mymodule.main(
-                    **{i: arguments[i] for i in dic.keys()})
-                if res:
-                    return jsonify(res), 200
-                return '', 204
+            mymodule = importlib.import_module(modulename)
+            # command, path = 'python3', os.path.join(
+            #     os.path.dirname(os.path.abspath(__file__)), func)+'.py'
+            # res = os.popen(
+            #     ' '.join([command, path]+list(parameters.values()))).read()
+            res = mymodule.main(
+                **{i: arguments[i] for i in dic.keys()})
+            if res:
+                return jsonify(res), 200
+            return '', 204
         except (ModuleNotFoundError, AttributeError) as e:
-                return jsonify(e.msg), 400
+            return jsonify(e.msg), 400
     return 'Function does not exist', 400
     # @app.route('/ai/tag_item')
     # def ai_get():
