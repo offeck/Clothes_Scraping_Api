@@ -1,3 +1,4 @@
+import string
 from bs4 import BeautifulSoup
 import requests
 import json
@@ -67,6 +68,8 @@ def get_html(url):
 def download_url(url, son):
     if not validators.url(url):
         return 'Bad URL'
+    if '?' in url:
+        url = url.split('?')[0]
     try:
         x = BeautifulSoup(get_html(url), 'lxml')
         # print(x.prettify())
@@ -162,7 +165,7 @@ if __name__ == '__main__':
     # print(scrap_manager('bonobos',
     #                     ['https://bonobos.com/products/jetsetter-stretch-wool-suit-pant'] * 50))
     print(scrap_manager('bonobos',
-                        'https://bonobos.com/products/jetsetter-stretch-wool-suit-pant'))
+                        "https://bonobos.com/products/fielder-stretch-e-waist-tech-pant"))
     print(scrap_manager('terminalx',
                         'https://www.terminalx.com/women/pants-skirts/jeans/z280796027'))
     # print(scrap_manager_ses('bonobosnew',
