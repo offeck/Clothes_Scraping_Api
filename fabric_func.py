@@ -165,7 +165,7 @@ if __name__ == '__main__':
     #                     ['https://bonobos.com/products/jetsetter-stretch-wool-suit-pant'] * 50))
     print(scrap_manager('bonobos',
                         "https://bonobos.com/products/anywhere-shorts?color=washed%20black"))
-    # print(scrap_manager('terminalx',
-    # 'https://www.terminalx.com/women/pants-skirts/jeans/z280796027'))
+    print(scrap_manager('terminalx',
+                        'https://www.terminalx.com/women/pants-skirts/jeans/z280796027'))
     # print(scrap_manager_ses('bonobosnew',
     #                         'https://bonobos.com/products/jetsetter-stretch-wool-suit-pant'))
