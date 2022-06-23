@@ -1,4 +1,3 @@
-import string
 from bs4 import BeautifulSoup
 import requests
 import json
@@ -165,8 +164,8 @@ if __name__ == '__main__':
     # print(scrap_manager('bonobos',
     #                     ['https://bonobos.com/products/jetsetter-stretch-wool-suit-pant'] * 50))
     print(scrap_manager('bonobos',
-                        "https://bonobos.com/products/fielder-stretch-e-waist-tech-pant"))
-    print(scrap_manager('terminalx',
-                        'https://www.terminalx.com/women/pants-skirts/jeans/z280796027'))
+                        "https://bonobos.com/products/anywhere-shorts?color=washed%20black"))
+    # print(scrap_manager('terminalx',
+    # 'https://www.terminalx.com/women/pants-skirts/jeans/z280796027'))
     # print(scrap_manager_ses('bonobosnew',
     #                         'https://bonobos.com/products/jetsetter-stretch-wool-suit-pant'))
