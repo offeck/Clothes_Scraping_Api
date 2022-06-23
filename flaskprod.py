@@ -74,11 +74,11 @@ def fun():
                             },
                         'POST': {
                             'description': 'Add new function',
-                        },
+                                },
                         'DELETE':
                             {
                                 'description': 'Delete function',
-                            },
+                        },
                 },
             },
             'functions':
@@ -191,6 +191,7 @@ def get_tags():
     modulename = 'tag_item'  # change module name manually
     dic = fun().get_json()['ai']['functions'][modulename]
     arguments = request.args.to_dict()
+    print('arguments :', arguments)
     if not arguments:
         return dic, 200
     if dic.keys() == arguments.keys():
