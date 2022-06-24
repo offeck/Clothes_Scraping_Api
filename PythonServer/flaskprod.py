@@ -1,8 +1,8 @@
 import json
-from fabric_func import os
+from PythonServer.fabric_func import os
 from flask import Flask, jsonify, request
 from flask_restful import Resource, Api, reqparse
-import fabric_func
+import PythonServer.fabric_func as fabric_func
 import importlib
 
 app = Flask(__name__)
